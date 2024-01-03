@@ -25,7 +25,6 @@ type AuthClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	IsAdmin(ctx context.Context, in *IsAdminRequest, opts ...grpc.CallOption) (*IsAdminResponse, error)
-	Ping(ctx context.Context, in *IsPingRequest, opts ...grpc.CallOption) (*IsPingResponse, error)
 }
 
 type authClient struct {
@@ -63,15 +62,6 @@ func (c *authClient) IsAdmin(ctx context.Context, in *IsAdminRequest, opts ...gr
 	return out, nil
 }
 
-func (c *authClient) Ping(ctx context.Context, in *IsPingRequest, opts ...grpc.CallOption) (*IsPingResponse, error) {
-	out := new(IsPingResponse)
-	err := c.cc.Invoke(ctx, "/auth.Auth/Ping", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // AuthServer is the server API for Auth service.
 // All implementations must embed UnimplementedAuthServer
 // for forward compatibility
@@ -79,7 +69,6 @@ type AuthServer interface {
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	IsAdmin(context.Context, *IsAdminRequest) (*IsAdminResponse, error)
-	Ping(context.Context, *IsPingRequest) (*IsPingResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -95,9 +84,6 @@ func (UnimplementedAuthServer) Login(context.Context, *LoginRequest) (*LoginResp
 }
 func (UnimplementedAuthServer) IsAdmin(context.Context, *IsAdminRequest) (*IsAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsAdmin not implemented")
-}
-func (UnimplementedAuthServer) Ping(context.Context, *IsPingRequest) (*IsPingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
 
@@ -166,24 +152,6 @@ func _Auth_IsAdmin_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IsPingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServer).Ping(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/auth.Auth/Ping",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Ping(ctx, req.(*IsPingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Auth_ServiceDesc is the grpc.ServiceDesc for Auth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -203,9 +171,127 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "IsAdmin",
 			Handler:    _Auth_IsAdmin_Handler,
 		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "sso.proto",
+}
+
+// PingClient is the client API for Ping service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PingClient interface {
+	Ping(ctx context.Context, in *IsPingRequest, opts ...grpc.CallOption) (*IsPingResponse, error)
+	NewApp(ctx context.Context, in *IsNewAppRequest, opts ...grpc.CallOption) (*IsNewAppResponse, error)
+}
+
+type pingClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPingClient(cc grpc.ClientConnInterface) PingClient {
+	return &pingClient{cc}
+}
+
+func (c *pingClient) Ping(ctx context.Context, in *IsPingRequest, opts ...grpc.CallOption) (*IsPingResponse, error) {
+	out := new(IsPingResponse)
+	err := c.cc.Invoke(ctx, "/auth.Ping/Ping", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pingClient) NewApp(ctx context.Context, in *IsNewAppRequest, opts ...grpc.CallOption) (*IsNewAppResponse, error) {
+	out := new(IsNewAppResponse)
+	err := c.cc.Invoke(ctx, "/auth.Ping/NewApp", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PingServer is the server API for Ping service.
+// All implementations must embed UnimplementedPingServer
+// for forward compatibility
+type PingServer interface {
+	Ping(context.Context, *IsPingRequest) (*IsPingResponse, error)
+	NewApp(context.Context, *IsNewAppRequest) (*IsNewAppResponse, error)
+	mustEmbedUnimplementedPingServer()
+}
+
+// UnimplementedPingServer must be embedded to have forward compatible implementations.
+type UnimplementedPingServer struct {
+}
+
+func (UnimplementedPingServer) Ping(context.Context, *IsPingRequest) (*IsPingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedPingServer) NewApp(context.Context, *IsNewAppRequest) (*IsNewAppResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NewApp not implemented")
+}
+func (UnimplementedPingServer) mustEmbedUnimplementedPingServer() {}
+
+// UnsafePingServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PingServer will
+// result in compilation errors.
+type UnsafePingServer interface {
+	mustEmbedUnimplementedPingServer()
+}
+
+func RegisterPingServer(s grpc.ServiceRegistrar, srv PingServer) {
+	s.RegisterService(&Ping_ServiceDesc, srv)
+}
+
+func _Ping_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsPingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PingServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.Ping/Ping",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PingServer).Ping(ctx, req.(*IsPingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Ping_NewApp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsNewAppRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PingServer).NewApp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.Ping/NewApp",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PingServer).NewApp(ctx, req.(*IsNewAppRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Ping_ServiceDesc is the grpc.ServiceDesc for Ping service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Ping_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "auth.Ping",
+	HandlerType: (*PingServer)(nil),
+	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Ping",
-			Handler:    _Auth_Ping_Handler,
+			Handler:    _Ping_Ping_Handler,
+		},
+		{
+			MethodName: "NewApp",
+			Handler:    _Ping_NewApp_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

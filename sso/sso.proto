@@ -8,7 +8,11 @@ service Auth {
     rpc Register(RegisterRequest) returns (RegisterResponse) {}
     rpc Login(LoginRequest) returns (LoginResponse) {}
     rpc IsAdmin(IsAdminRequest) returns (IsAdminResponse) {}
+}
+
+service Ping {
     rpc Ping(IsPingRequest) returns (IsPingResponse) {}
+    rpc NewApp(IsNewAppRequest) returns (IsNewAppResponse) {}
 }
 
 message RegisterRequest{
@@ -47,4 +51,15 @@ message IsPingRequest {
 
 message IsPingResponse {
     bool client = 1;
+}
+
+
+message IsNewAppRequest {
+    int64 id = 1;
+    string name = 2;
+    string secret = 3;
+}
+
+message IsNewAppResponse {
+    string status = 1;
 }
