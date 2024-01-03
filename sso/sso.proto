@@ -61,5 +61,5 @@ message IsNewAppRequest {
 }
 
 message IsNewAppResponse {
-    string status = 1;
+    int64 id = 1;
 }
